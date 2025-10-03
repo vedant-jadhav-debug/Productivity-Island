@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GenZ Live - Polls & Q&A 🏝️</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>GenZ Live - Polls & Q&A 🏝️</h1>
+
+    <!-- Profile -->
+    <div class="card avatar">
+      <h3>Your Island Profile</h3>
+      <img id="avatar" src="https://i.ibb.co/F5pnwKj/avatar1.png" alt="Avatar">
+      <p>XP: <span id="xp">0</span> | Level: <span id="level">1</span></p>
+    </div>
+
+    <!-- Poll Creator -->
+    <div class="card">
+      <h3>Create Poll</h3>
+      <input id="poll-question" placeholder="Enter question...">
+      <input id="poll-options" placeholder="Options (comma separated)">
+      <button onclick="createPoll()">Create</button>
+    </div>
+
+    <!-- Poll Display -->
+    <div class="card">
+      <h3>Active Poll</h3>
+      <div id="poll-area"></div>
+    </div>
+
+    <!-- Q&A -->
+    <div class="card">
+      <h3>Ask a Question</h3>
+      <input id="qna-input" placeholder="Type your question...">
+      <button onclick="askQuestion()">Ask</button>
+      <div id="qna-list"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

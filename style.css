@@ -1,0 +1,55 @@
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#e0f7fa,#fce4ec);
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+h1 {
+  text-align: center;
+  color: #333;
+}
+.card {
+  background: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin: 15px 0;
+}
+input, button {
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  width: 100%;
+}
+button {
+  background: #00b894;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+button:hover { opacity: 0.9; }
+.poll-option {
+  background: #f1f1f1;
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.poll-option:hover { background: #dfe6e9; }
+.qna-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+.avatar img {
+  width: 100px;
+  border-radius: 50%;
+  border: 3px solid #6c5ce7;
+}
