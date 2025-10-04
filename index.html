@@ -1,44 +1,289 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>GenZ Live - Polls & Q&A 🏝️</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GenZ Productivity Island – Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --accent-1: #00d4ff;
+      --accent-2: #ff8ab6;
+      --accent-3: #9aff7a;
+    }
+    body { font-family: 'Nunito', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    .island-card { transition: transform .35s cubic-bezier(.2,.9,.2,1), box-shadow .2s; }
+    .island-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(12,12,30,.12); }
+    .sparkle { animation: floaty 3s infinite ease-in-out; }
+    @keyframes floaty {
+      0%{ transform: translateY(0) }
+      50%{ transform: translateY(-6px) }
+      100%{ transform: translateY(0) }
+    }
+    .volcano { background: linear-gradient(180deg,#ffb34755,#ff6b6b22); }
+    .flower { background: linear-gradient(180deg,#d4f8ff55,#ffd1f622); }
+  </style>
 </head>
-<body>
-  <div class="container">
-    <h1>GenZ Live - Polls & Q&A 🏝️</h1>
+<body class="bg-gradient-to-b from-indigo-50 to-white min-h-screen text-slate-800">
 
-    <!-- Profile -->
-    <div class="card avatar">
-      <h3>Your Island Profile</h3>
-      <img id="avatar" src="https://i.ibb.co/F5pnwKj/avatar1.png" alt="Avatar">
-      <p>XP: <span id="xp">0</span> | Level: <span id="level">1</span></p>
+  <!-- HEADER -->
+  <header class="max-w-5xl mx-auto p-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-extrabold">GenZ Productivity Island 🌴</h1>
+      <p class="text-sm text-slate-600 mt-1">Make daily tasks feel like quests — build your island, earn XP & real rewards.</p>
+    </div>
+    <div id="header-actions" class="space-x-3">
+      <button id="open-signup" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg shadow">Sign up</button>
+      <button id="open-dashboard" class="px-4 py-2 border border-indigo-200 rounded-lg">Dashboard</button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <main class="max-w-5xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <section class="col-span-2 bg-white rounded-2xl p-6 island-card">
+      <div class="flex items-start gap-6">
+        <div class="w-48 h-48 rounded-xl overflow-hidden relative shadow-md">
+          <div id="island-preview" class="w-full h-full p-4 flex flex-col justify-between items-center text-center">
+            <div id="island-art" class="w-full h-full rounded-lg p-2 flex flex-col justify-center items-center"></div>
+          </div>
+        </div>
+
+        <div class="flex-1">
+          <h2 class="text-xl font-bold">Build your own Island of Productivity 🌟</h2>
+          <p class="mt-2 text-slate-600">Sign up, choose your avatar and gender-based island theme. Complete tasks = earn XP = unlock rewards like pizza coupons 🎟️</p>
+
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div class="p-3 bg-indigo-50 rounded-lg">
+              <div class="text-xs text-slate-500">Recommended for</div>
+              <div class="font-semibold">Ages 10–18</div>
+            </div>
+            <div class="p-3 bg-amber-50 rounded-lg">
+              <div class="text-xs text-slate-500">Main features</div>
+              <div class="font-semibold">Gamified tasks, XP & Coupons</div>
+            </div>
+          </div>
+
+          <div class="mt-4 flex gap-2">
+            <button id="demo-signup" class="px-4 py-2 bg-green-400 text-white rounded-lg">Try Demo Signup</button>
+            <button id="how-it-works" class="px-4 py-2 border rounded-lg">How it works</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="bg-white p-6 rounded-2xl">
+      <h3 class="font-bold">Why kids love it</h3>
+      <ul class="mt-3 space-y-3 text-sm text-slate-600">
+        <li>🎮 Tasks become quests — fun and motivating</li>
+        <li>🏆 Visible progress (XP & island growth)</li>
+        <li>🎁 Real-world coupons for milestones</li>
+      </ul>
+    </aside>
+  </main>
+
+  <!-- Signup & Dashboard -->
+  <div id="app-root" class="max-w-5xl mx-auto p-6">
+    <div id="signup-card" class="hidden bg-white rounded-2xl p-6 shadow-md">
+      <h3 class="text-lg font-bold">Create your account</h3>
+      <form id="signup-form" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input id="name" required placeholder="Full name" class="p-3 border rounded-lg" />
+        <input id="age" type="number" min="10" max="18" required placeholder="Age (10-18)" class="p-3 border rounded-lg" />
+        <select id="gender" required class="p-3 border rounded-lg">
+          <option value="">Select gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+        <input id="interests" placeholder="Interests (e.g. games, art)" class="p-3 border rounded-lg" />
+        <div class="md:col-span-2 flex gap-3 mt-2">
+          <button type="submit" class="px-4 py-2 bg-indigo-500 text-white rounded-lg">Create account</button>
+          <button type="button" id="signup-cancel" class="px-4 py-2 border rounded-lg">Cancel</button>
+        </div>
+      </form>
+      <p class="text-xs text-slate-400 mt-3">Data stored locally (demo prototype).</p>
     </div>
 
-    <!-- Poll Creator -->
-    <div class="card">
-      <h3>Create Poll</h3>
-      <input id="poll-question" placeholder="Enter question...">
-      <input id="poll-options" placeholder="Options (comma separated)">
-      <button onclick="createPoll()">Create</button>
-    </div>
+    <div id="dashboard" class="hidden bg-white rounded-2xl p-6 shadow-md">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div id="dash-avatar" class="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold text-xl">U</div>
+          <div>
+            <div id="dash-name" class="font-bold">User</div>
+            <div id="dash-age" class="text-sm text-slate-500">Age</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-sm text-slate-500">XP</div>
+          <div id="xp-count" class="text-2xl font-extrabold">0</div>
+          <div class="mt-2"><button id="logout" class="px-3 py-1 border rounded">Logout</button></div>
+        </div>
+      </div>
 
-    <!-- Poll Display -->
-    <div class="card">
-      <h3>Active Poll</h3>
-      <div id="poll-area"></div>
-    </div>
+      <div class="mt-5 grid md:grid-cols-3 gap-6">
+        <div class="md:col-span-2">
+          <h4 class="font-bold">Your Quests (Tasks)</h4>
+          <form id="task-form" class="flex gap-2 mt-3">
+            <input id="task-input" placeholder="Add a new quest (e.g. Revise 1 chapter)" class="flex-1 p-3 border rounded-lg" />
+            <button class="px-4 py-2 bg-emerald-400 text-white rounded-lg" type="submit">Add</button>
+          </form>
+          <ul id="task-list" class="mt-4 space-y-3"></ul>
+        </div>
 
-    <!-- Q&A -->
-    <div class="card">
-      <h3>Ask a Question</h3>
-      <input id="qna-input" placeholder="Type your question...">
-      <button onclick="askQuestion()">Ask</button>
-      <div id="qna-list"></div>
+        <div>
+          <h5 class="font-bold">Your Island</h5>
+          <div id="dash-island" class="mt-3 rounded-lg p-4 h-40 flex flex-col items-center justify-center text-center"></div>
+          <div class="mt-3">
+            <div class="text-sm text-slate-500">Progress to next reward</div>
+            <div class="w-full bg-slate-100 rounded-full h-3 mt-2 overflow-hidden">
+              <div id="progress-bar" class="h-3 rounded-full bg-gradient-to-r from-emerald-400 to-indigo-500 w-0"></div>
+            </div>
+            <div class="mt-2 flex justify-between text-xs text-slate-500">
+              <span id="progress-val">0 XP</span>
+              <span id="next-milestone">Next: 50 XP</span>
+            </div>
+          </div>
+          <div class="mt-4">
+            <button id="claim-reward" class="w-full px-3 py-2 rounded-lg bg-yellow-400 font-bold">Claim reward</button>
+          </div>
+          <div id="rewards-list" class="mt-3 text-sm text-slate-600"></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <script src="script.js"></script>
-</body>
-</html>
+  <div id="toast" class="fixed right-6 bottom-6 hidden bg-slate-900 text-white px-4 py-2 rounded-lg shadow-lg"></div>
+
+  <script>
+    const demoCoupons = [
+      { title: "🍕 Pizza ₹100 off", codePrefix: "PZ" },
+      { title: "🎬 Movie 20% off", codePrefix: "MV" },
+      { title: "☕ Snack shop ₹50 off", codePrefix: "SN" },
+      { title: "🎮 Game voucher 10% off", codePrefix: "GM" }
+    ];
+
+    const $ = (s) => document.querySelector(s);
+    const qs = (s) => document.querySelectorAll(s);
+    const toast = (txt) => {
+      const el = $('#toast');
+      el.textContent = txt;
+      el.classList.remove('hidden');
+      setTimeout(()=> el.classList.add('hidden'), 3000);
+    };
+
+    const STORAGE_KEY = 'gzi_demo_v1';
+    const defaultState = { user:null, tasks:[], xp:0, rewards:[] };
+    function loadState(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||defaultState;}catch{return defaultState;} }
+    function saveState(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+
+    let state = loadState();
+
+    $('#open-signup').onclick=()=>showSignup();
+    $('#demo-signup').onclick=()=>{
+      $('#name').value="Demo User"; $('#age').value=14; $('#gender').value="female"; $('#interests').value="games, art"; showSignup();
+    };
+    $('#signup-cancel').onclick=()=>$('#signup-card').classList.add('hidden');
+
+    function showSignup(){
+      $('#signup-card').classList.remove('hidden');
+      $('#dashboard').classList.add('hidden');
+      window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+    }
+
+    $('#signup-form').onsubmit=(e)=>{
+      e.preventDefault();
+      const name=$('#name').value.trim(), age=+$('#age').value, gender=$('#gender').value, interests=$('#interests').value.trim();
+      if(!name||!gender||!age)return toast('Please enter name, age & gender.');
+      state={user:{name,age,gender,interests},tasks:[],xp:0,rewards:[]};
+      saveState(state); renderAll(); toast('Account created! Welcome 🌴');
+      $('#signup-card').classList.add('hidden'); showDashboard();
+    };
+
+    $('#open-dashboard').onclick=()=>showDashboard();
+    function showDashboard(){
+      if(!state.user){ toast('No account yet — please sign up first.'); showSignup(); return; }
+      $('#dashboard').classList.remove('hidden'); $('#signup-card').classList.add('hidden'); renderAll();
+    }
+
+    $('#logout').onclick=()=>{ localStorage.removeItem(STORAGE_KEY); state={...defaultState}; renderAll(); toast('Logged out.'); };
+
+    $('#task-form').onsubmit=(e)=>{
+      e.preventDefault(); const text=$('#task-input').value.trim(); if(!text)return;
+      const id='t_'+Date.now(); state.tasks.push({id,text,done:false,xp:10});
+      $('#task-input').value=''; saveState(state); renderTasks();
+    };
+
+    function toggleTask(id){ const t=state.tasks.find(x=>x.id===id); if(!t)return;
+      t.done=!t.done; state.xp+=t.done?t.xp:-t.xp; saveState(state); renderAll(); }
+
+    function removeTask(id){ state.tasks=state.tasks.filter(x=>x.id!==id); saveState(state); renderAll(); }
+
+    $('#claim-reward').onclick=()=>{
+      const next=nextMilestone(); if(state.xp<next) return toast('Need more XP!');
+      const cp=demoCoupons[Math.floor(Math.random()*demoCoupons.length)];
+      const code=`${cp.codePrefix}-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
+      state.rewards.push({title:cp.title,code,xpAtClaim:state.xp,claimedAt:new Date().toISOString()});
+      saveState(state); renderAll(); toast('Reward unlocked 🎁');
+    };
+
+    function nextMilestone(){ const base=50; return Math.ceil((state.xp+1)/base)*base; }
+
+    function renderTasks(){
+      const list=$('#task-list'); list.innerHTML='';
+      if(!state.tasks.length){ list.innerHTML='<div class="text-sm text-slate-500">No quests yet — add one!</div>'; return;}
+      state.tasks.forEach(t=>{
+        const li=document.createElement('li');
+        li.className='p-3 border rounded-lg flex items-center justify-between';
+        li.innerHTML=`
+          <div class="flex items-center gap-3">
+            <button data-id="${t.id}" class="task-toggle px-2 py-1 rounded ${t.done?'bg-emerald-200':'bg-slate-100'}">${t.done?'✓':'○'}</button>
+            <div>
+              <div class="${t.done?'line-through text-slate-400':''}">${t.text}</div>
+              <div class="text-xs text-slate-400">+${t.xp} XP</div>
+            </div>
+          </div>
+          <button data-remove="${t.id}" class="text-xs text-rose-500">Delete</button>`;
+        list.appendChild(li);
+      });
+      qs('.task-toggle').forEach(b=>b.onclick=()=>toggleTask(b.dataset.id));
+      qs('[data-remove]').forEach(b=>b.onclick=()=>{if(confirm('Delete?'))removeTask(b.dataset.remove);});
+    }
+
+    function renderRewards(){
+      const el=$('#rewards-list');
+      if(!state.rewards.length){ el.innerHTML='<div class="text-sm text-slate-500 mt-2">No rewards yet.</div>'; return;}
+      el.innerHTML='<div class="text-sm font-semibold">Your Rewards</div>';
+      state.rewards.slice().reverse().forEach(r=>{
+        el.innerHTML+=`<div class="mt-2 p-2 rounded bg-white border text-sm">
+          <div class="font-semibold">${r.title}</div>
+          <div class="text-xs text-slate-500">Code: <span class="font-mono">${r.code}</span></div>
+          <div class="text-xs text-slate-400">Claimed: ${new Date(r.claimedAt).toLocaleString()}</div>
+        </div>`;
+      });
+    }
+
+    function renderDashIsland(){
+      const el=$('#dash-island'); const g=state.user?.gender||'female';
+      el.innerHTML=`<div class="w-full h-full flex flex-col items-center justify-center">
+        <div class="w-32 h-20 rounded-lg flex items-center justify-center text-2xl ${g==='male'?'volcano':'flower'}">${g==='male'?'🌋':'🌸'}</div>
+        <div class="text-sm font-semibold mt-3">Island Level ${Math.floor((state.xp||0)/50)+1}</div>
+      </div>`;
+    }
+
+    function renderAll(){
+      if(state.user){
+        $('#dash-avatar').textContent=state.user.name.slice(0,2).toUpperCase();
+        $('#dash-name').textContent=state.user.name;
+        $('#dash-age').textContent=`Age ${state.user.age} • ${state.user.interests||''}`;
+        $('#xp-count').textContent=state.xp;
+        const next=nextMilestone(), prev=next-50;
+        const pct=Math.min(100,Math.round(((state.xp-prev)/(next-prev))*100));
+        $('#progress-bar').style.width=pct+'%';
+        $('#progress-val').textContent=`${state.xp} XP`;
+        $('#next-milestone').textContent=`Next: ${next} XP`;
+        renderTasks(); renderRewards(); renderDashIsland();
+      }
+    }
+
+    renderAll();
+
+    $('#how-it-works').onclick=()=>alert("1) Sign up\n2) Add quests\n3) Complete to earn XP\n
