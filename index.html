@@ -1,307 +1,941 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GenZ Productivity Island – Demo V2</title>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;400&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --accent-1: #5cd5eb;
-      --accent-2: #ef7c8e;
-      --accent-3: #6ee7b7;
-      --happy: #FEE440;
-      --sad: #3F4E4F;
-    }
-    html, body {
-      margin: 0; padding: 0; font-family: 'Nunito', system-ui, Arial, sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #fffafd 100%);
-      min-height: 100vh; color: #1e293b;
-    }
-    .centered { display:flex;flex-direction:column;align-items:center;justify-content:center }
-    .card {
-      background: #fff;
-      border-radius: 2rem;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.09);
-      padding:2.5rem 2rem;margin:2rem auto;max-width:350px;width:90%;transition:.3s;
-    }
-    .card:hover {box-shadow:0 12px 36px rgba(0,0,0,0.13);}
-    h1 { font-size:2.1rem; font-weight:800; background: linear-gradient(90deg, var(--accent-1), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
-    .island-stage {
-      width: 330px; height: 195px; margin:30px auto 10px auto;
-      position: relative;
-      background: linear-gradient(180deg,#e0f2fe 65%,#fff 100%);
-      border-radius:1.5rem;border:2px solid #ddf5fc;
-      box-shadow:0 8px 28px rgba(100,200,255,.07);
-    }
-    /* ISLAND SVG ART */
-    .island-art { positionabsolute; bottom:0; left:0; width:100%; height:100%; pointer-events:none;}
-    /* Quiz Area */
-    .quiz-card {
-      margin:2rem auto 1rem;max-width:390px;background:#fff;
-      border-radius:1.5rem;padding:2rem; box-shadow:0 8px 24px rgba(0,0,0,.06);
-      transition:.3s;
-    }
-    .answer-btn {
-      background: var(--accent-1); color:white; border: none; cursor: pointer;
-      font-weight:700;border-radius:.8rem;padding:.75em 1em;margin:.4em 0;transition:.2s;box-shadow:0 2px 18px rgba(100,220,255,.06);
-      display:block;width:100%;font-size:1.1rem;
-    }
-    .answer-btn:hover {background:var(--accent-2);}
-    /* Island emotion avatar */
-    .man {
-      transition:.4s;
-      transform:scale(1.1);
-      font-size:2.6rem;
-      text-align:center;
-      position:absolute; left:67%; bottom:40%;
-      filter:drop-shadow(0px 2px 7px rgba(0,0,0,0.08));
-      z-index:10;
-    }
-    .man.happy { color: var(--happy); }
-    .man.sad { color: var(--sad);}
-    .grow {animation:grow-island .7s both;}
-    .shrink {animation:shrink-island .65s both;}
-    @keyframes grow-island {0%{transform:scale(.93);}100%{transform:scale(1.18);}}
-    @keyframes shrink-island {0%{transform:scale(1.05);}100%{transform:scale(.77);}}
-    .xp-bar {
-      background:linear-gradient(90deg,#34d399,#818cf8);
-      height:10px;border-radius:12px;margin-top:12px;
-      transition:.2s;
-    }
-    .reward-card {
-      background:#f0fdf4; color:#166534; padding:.8rem 1.2rem; border-radius:1rem;
-      margin-top:1.2rem; font-weight:700; text-align:center; font-size:1.05rem;
-      animation:bounce .65s;
-    }
-    @keyframes bounce {0%{transform:scale(.91);}60%{transform:scale(1.15);}100%{transform:scale(1);}}
-    /* Form Styling */
-    .input {
-      display:block;width:100%;margin:0.8em 0; padding:.85em 1em;
-      font-size:1.07em; border-radius:.8em; border:1px solid #dbeafe;background:#f8fafc;
-      font-family:inherit; transition:.2s;
-    }
-    .input:focus { outline: none; border-color: var(--accent-1);}
-    /* Responsive */
-    @media (max-width:400px) {.card,.quiz-card{padding:1.1rem;}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenZ Productivity Island</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="main"></div>
-  <script>
-    // -----------------------------------
-    // Helper: Demo "AI" Quiz Generator
-    // -----------------------------------
-    const QUIZ_BANK = [
-      {q:"Which planet is known as the Red Planet?",a:2,opts:["Earth","Mars","Venus","Mercury"]},
-      {q:"Who invented the light bulb?",a:1,opts:["Isaac Newton","Thomas Edison","Einstein","Nikola Tesla"]},
-      {q:"Which is the largest organ in the human body?",a:3,opts:["Heart","Liver","Brain","Skin"]},
-      {q:"Which programming language runs in web browsers?",a:4,opts:["Python","C++","Java","JavaScript"]},
-      {q:"In which year did Chandrayaan-3 land on the Moon?", a:3,opts:["2021","2022","2023","2019"]},
-      {q:"What color do you get by mixing yellow and blue?", a:2, opts:["Red","Green","Purple","Brown"]},
-      {q:"Who wrote 'Harry Potter'?", a:1, opts:["J.K. Rowling","Rick Riordan","Ruskin Bond","Enid Blyton"]},
-      {q:"What is 9 × 8?", a:4, opts:["64","88","71","72"]},
-    ];
-    function getRandomQuiz() {
-      let shuffled = [...QUIZ_BANK].sort(()=>Math.random()-.5);
-      return shuffled.slice(0,3); // 3 random questions
-    }
-    // App State
-    let user = null;
-    let xp = 0;
-    let islandLvl = 1;
-    let quizIndex = 0, quizList = [];
-    let correctCount = 0;
-    let rewardPopup = '';
-
-    // ------------- UI Renderers ---------
-    function renderLogin() {
-      document.body.style.background = "linear-gradient(135deg, #e0e7ff 0%, #fffafd 100%)";
-      main.innerHTML = `
-      <div class="card centered" style="margin-top:3.5rem;">
-        <h1>GenZ Productivity Island 🌴</h1>
-        <div style="text-align:center;color:#444;font-size:1.07rem;margin-top:1rem;">
-          <b>Turn tasks & quizzes into real rewards!</b><br>
-          <span style="color:#6366f1;">Ages 11–18 • <span style="font-weight:bold;">Gamified learning, daily islands, fun quizzes, rewards</span></span>
+    <!-- Onboarding Screen -->
+    <div id="onboarding" class="screen active">
+        <div class="bg-animated">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+            <div class="blob blob-3"></div>
         </div>
-        <form id="signupForm" class="centered" style="width:100%;margin-top:1.3rem;">
-          <input class="input" required placeholder="Full Name" name="name"/>
-          <input class="input" required placeholder="Age (11–18)" name="age" type="number" min="11" max="18"/>
-          <select class="input" required name="gender">
-              <option value="">Select Gender</option>
-              <option value="male">Boy</option>
-              <option value="female">Girl</option>
-          </select>
-          <input class="input" placeholder="Your Interests (e.g. football, art)" name="interests"/>
-          <button type="submit" class="answer-btn" style="background:linear-gradient(90deg,var(--accent-1),var(--accent-2));font-size:1.14em;">Start & Build Island</button>
-        </form>
-        <div style="font-size:.95rem;margin-top:1.1em;color:#959fbb;letter-spacing:.01em;">Your data is local-only.</div>
-      </div>`;
-      document.getElementById('signupForm').onsubmit = e=>{
-        e.preventDefault();
-        const fd = new FormData(e.target);
-        user = {
-          name:fd.get('name').trim(), age:parseInt(fd.get('age')), gender:fd.get('gender'), interests:fd.get('interests').trim()
-        };
-        xp = 0; islandLvl = 1; quizIndex = 0; quizList = []; correctCount = 0; rewardPopup='';
-        renderDashboard();
-      };
-    }
-
-    function renderDashboard() {
-      document.body.style.background = "linear-gradient(135deg, #c7d2fe 0%, #fef9c3 100%)";
-      let islandState = "neutral";
-      main.innerHTML = `
-        <div class="card centered" style="max-width:900px;width:99%;">
-          <div style="width:100%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap">
-            <div style="flex:1;min-width:200px;">
-              <div class="centered" style="gap:0.2em;">
-                <div style="font-size:2.2rem;background-image:linear-gradient(90deg,var(--accent-1),var(--accent-2));-webkit-background-clip: text;-webkit-text-fill-color: transparent;font-weight:800;">
-                  Hi, ${user.name ? user.name.split(' ')[0] : 'User'}!
+        <div class="content-center">
+            <div class="island-icon">
+                <div class="island-circle">
+                    <div class="island-emoji">🏝️</div>
+                    <svg class="waves-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M2 6s3-3 6-3 6 3 6 3 3-3 6-3 6 3 6 3M2 12s3-3 6-3 6 3 6 3 3-3 6-3 6 3 6 3M2 18s3-3 6-3 6 3 6 3 3-3 6-3 6 3 6 3"></path>
+                    </svg>
                 </div>
-                <div style="color:#6b7280;font-size:1.04rem;margin-bottom:.35em;">
-                  Age ${user.age} • ${user.interests||''}
-                </div>
-              </div>
+                <div class="sparkle sparkle-1">✨</div>
+                <div class="sparkle sparkle-2">✨</div>
             </div>
-            <button onclick="logout()" style="padding:.5em 1.2em;font-size:1.1em;color:#e11d48;background:#fee2e2;border:none;border-radius:.6em;cursor:pointer;font-weight:700;">
-              Log out
+            <div class="title-section">
+                <h1 class="main-title">GenZ Productivity</h1>
+                <h2 class="sub-title">Island 🌴</h2>
+                <p class="description">Turn studying into an adventure! Complete missions, earn XP, and grow your tropical paradise 🌊</p>
+            </div>
+            <button class="cta-button" onclick="navigateTo('dashboard')">
+                🚀 Start My Island
             </button>
-          </div>
+            <div class="features">
+                <div class="feature-card">
+                    <span class="feature-emoji">🎯</span>
+                    <span class="feature-text">Gamified Missions</span>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-emoji">⚡</span>
+                    <span class="feature-text">Earn XP Points</span>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-emoji">🌴</span>
+                    <span class="feature-text">Grow Your Island</span>
+                </div>
+            </div>
         </div>
-        <div class="island-stage" id="island-cont">
-          <div id="islandView"></div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboard" class="screen">
+        <!-- Screen Selector Button -->
+        <button class="screen-selector-btn" onclick="openScreenSelector()">
+            📱 View All Screens
+        </button>
+
+        <!-- Header with XP Bar -->
+        <div class="header-bar">
+            <div class="container">
+                <div class="header-top">
+                    <div class="user-info">
+                        <div class="avatar-circle">😎</div>
+                        <div class="user-details">
+                            <h3 class="user-level">Level 7 Explorer</h3>
+                            <p class="user-status">Keep it up! 🔥</p>
+                        </div>
+                    </div>
+                    <div class="xp-badge">
+                        <svg class="xp-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFE177" stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                        <span class="xp-text">650 XP</span>
+                    </div>
+                </div>
+                <div class="xp-progress-section">
+                    <div class="xp-progress-labels">
+                        <span>XP Progress</span>
+                        <span>650 / 1000</span>
+                    </div>
+                    <div class="xp-progress-bar">
+                        <div class="xp-progress-fill" style="width: 65%"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="xp-bar" style="width:${(xp%50)*2}%;"></div>
-        <div class="centered" style="margin:1rem auto .5rem;">
-          <span style="font-weight:700;color:#818cf8;">XP:</span> <span id="xpNum">${xp}</span> &nbsp; • &nbsp;
-          <span style="font-weight:600;">Level:</span> <span id="islandLevel">${Math.floor(xp/50)+1}</span> &nbsp; • &nbsp; 
-          <span>Progress: ${xp%50}/50 XP</span>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Island Visual -->
+            <div class="island-showcase">
+                <div class="island-card">
+                    <h2 class="island-title">Your Island Paradise 🏝️</h2>
+                    <div class="island-visual">
+                        <div class="main-palm">🌴</div>
+                        <div class="volcano">🌋</div>
+                        <div class="ocean-wave">🌊</div>
+                        <div class="star-sparkle">⭐</div>
+                    </div>
+                    <p class="island-subtitle">Complete missions to grow your island!</p>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-card stat-pink">
+                    <div class="stat-emoji">🔥</div>
+                    <div class="stat-value">7 days</div>
+                    <div class="stat-label">Streak</div>
+                </div>
+                <div class="stat-card stat-blue">
+                    <div class="stat-emoji">🎯</div>
+                    <div class="stat-value">12/20</div>
+                    <div class="stat-label">Missions</div>
+                </div>
+                <div class="stat-card stat-yellow">
+                    <div class="stat-emoji">🏆</div>
+                    <div class="stat-value">#42</div>
+                    <div class="stat-label">Rank</div>
+                </div>
+            </div>
+
+            <!-- Today's Missions Preview -->
+            <div class="missions-preview">
+                <div class="missions-header">
+                    <h3 class="missions-title">Today's Missions 🎯</h3>
+                    <button class="view-all-btn" onclick="navigateTo('missions')">View All</button>
+                </div>
+                <div class="missions-list">
+                    <div class="mission-item">
+                        <div class="mission-left">
+                            <span class="mission-emoji">📚</span>
+                            <span class="mission-title">Study Math</span>
+                        </div>
+                        <div class="mission-xp">+50 XP</div>
+                    </div>
+                    <div class="mission-item completed">
+                        <div class="mission-left">
+                            <span class="mission-emoji">✍️</span>
+                            <span class="mission-title">Write Essay</span>
+                            <span class="check-mark">✓</span>
+                        </div>
+                        <div class="mission-xp">+75 XP</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Add Button -->
+            <button class="floating-add-btn" onclick="navigateTo('missions')">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
         </div>
-        ${rewardPopup}
-        <div style="display:flex;justify-content:center;">
-          <div style="flex-basis:390px">
-            <div id="quizZone"></div>
-          </div>
+
+        <!-- Navigation Bar -->
+        <nav class="nav-bar">
+            <div class="nav-container">
+                <button class="nav-item active" onclick="navigateTo('dashboard')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span class="nav-label">Home</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('missions')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="6"></circle>
+                        <circle cx="12" cy="12" r="2"></circle>
+                    </svg>
+                    <span class="nav-label">Missions</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('rewards')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                        <rect x="2" y="7" width="20" height="5"></rect>
+                        <line x1="12" y1="22" x2="12" y2="7"></line>
+                        <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+                        <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+                    </svg>
+                    <span class="nav-label">Rewards</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('avatar')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span class="nav-label">Profile</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Mission Center Screen -->
+    <div id="missions" class="screen">
+        <!-- Header -->
+        <div class="header-gradient header-missions">
+            <div class="container">
+                <div class="header-flex">
+                    <div>
+                        <h1 class="screen-title">Mission Center 🎯</h1>
+                        <p class="screen-subtitle">Complete tasks to level up!</p>
+                    </div>
+                    <div class="streak-badge">
+                        <svg class="streak-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF8BC2" stroke-width="2">
+                            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+                        </svg>
+                        <div>
+                            <div class="streak-number">7</div>
+                            <div class="streak-label">Day Streak</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      `;
-      renderIslandView("neutral");
-      renderQuiz();
-    }
 
-    function renderIslandView(state) {
-      // state: "grow", "shrink", "neutral", "happy", "sad"
-      let man =
-        state === "happy"
-          ? `<div class="man happy" style="left:62%;" title="Happy Man">👋😀</div>`
-          : state === "sad"
-          ? `<div class="man sad" style="left:62%;" title="Sad Man">👋😕</div>`
-          : `<div class="man" style="left:61.7%;">👋🙂</div>`;
+        <!-- Content -->
+        <div class="main-content">
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class="tab-btn active">All</button>
+                <button class="tab-btn">Study</button>
+                <button class="tab-btn">Practice</button>
+                <button class="tab-btn">Brain Game</button>
+                <button class="tab-btn">Quick Win</button>
+            </div>
 
-      // Grow/shrink island sizes 
-      let scale = state === "grow" || state === "happy" ? 1.21 : (state === "shrink" || state === "sad" ? 0.83 : 1);
-      let animClass =
-        state === "grow" || state === "happy"
-          ? "grow"
-          : state === "shrink" || state === "sad"
-          ? "shrink"
-          : "";
+            <!-- Mission Cards -->
+            <div class="mission-cards">
+                <div class="mission-card-full">
+                    <div class="mission-card-header">
+                        <div class="mission-info">
+                            <div class="mission-emoji-large">📚</div>
+                            <div>
+                                <h3 class="mission-card-title">Study Math Chapter 5</h3>
+                                <div class="mission-badges">
+                                    <span class="badge badge-purple">Study</span>
+                                    <span class="badge badge-green">Easy</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mission-xp-badge">+50 XP</div>
+                    </div>
+                    <button class="mission-start-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg>
+                        Start Mission
+                    </button>
+                </div>
 
-      document.getElementById("islandView").innerHTML = `
-      <svg viewBox="0 0 300 180" width="99%" class="island-art ${animClass}" style="transform: scale(${scale});">
-        <!-- Water -->
-        <ellipse cx="150" cy="158" rx="82" ry="22" fill="#a7f3d0"/>
-        <!-- Main island blob -->
-        <ellipse cx="146" cy="144" rx="62" ry="25" fill="#fde68a" stroke="#fbbf24" stroke-width="2"/>
-        <!-- Palm trunk -->
-        <rect x="202" y="105" width="12" height="44" rx="5.9" fill="#b87b3e"/>
-        <!-- Palm leaves -->
-        <ellipse cx="206" cy="98" rx="24" ry="9.8" fill="#4ade80" transform="rotate(13 206 98)" />
-        <ellipse cx="211" cy="96" rx="17" ry="7" fill="#22d3ee" transform="rotate(-10 211 96)"/>
-        <ellipse cx="209" cy="100" rx="15" ry="6" fill="#a3e635" transform="rotate(20 209 100)"/>
-        <!-- Coconuts -->
-        <circle cx="209" cy="114" r="4.1" fill="#683b17"/>
-        <circle cx="202.4" cy="113.5" r="3" fill="#7b4a22"/>
-        <!-- Man on island -->
-      </svg>
-      ${man}
-      `;
-    }
+                <div class="mission-card-full">
+                    <div class="mission-card-header">
+                        <div class="mission-info">
+                            <div class="mission-emoji-large">🎯</div>
+                            <div>
+                                <h3 class="mission-card-title">Complete 10 Practice Problems</h3>
+                                <div class="mission-badges">
+                                    <span class="badge badge-purple">Practice</span>
+                                    <span class="badge badge-yellow">Medium</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mission-xp-badge">+75 XP</div>
+                    </div>
+                    <button class="mission-start-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg>
+                        Start Mission
+                    </button>
+                </div>
 
-    function renderQuiz() {
-      quizZone.innerHTML = '';
-      if (quizList.length === 0 || quizIndex >= quizList.length) {
-        // New quiz set (simulate Gemini/AI updating)
-        quizList = getRandomQuiz();
-        quizIndex = 0;
-        correctCount = 0;
-        setTimeout(()=>renderNewQuiz(),400);
-      } else {
-        renderNewQuiz();
-      }
-    }
-    function renderNewQuiz() {
-      if(quizIndex>=quizList.length){
-        // All done, show results + animate island
-        xp += correctCount * 10; // XP per correct
-        rewardPopup = '';
-        let emotion = correctCount == quizList.length ? "happy" : (correctCount==0 ? "sad" : (correctCount>=2?"happy":"sad"));
-        renderIslandView(emotion);
-        setTimeout(()=>renderIslandView(emotion),30);
-        // Island grow/shrink
-        let msg = correctCount==quizList.length
-            ? `Awesome! All correct 👏`
-            : (correctCount>0
-                ? `Nice try! ${correctCount} correct out of ${quizList.length}`
-                : `Don't worry! Try next quiz!`);
-        let reward = '';
-        if (xp%50<10 && xp>0) { // Each 50 xp milestone: Reward!
-          reward = `<div class='reward-card'>🎁 <b>Congrats!</b> Coupon unlocked: <span style="font-family:monospace;">COUPON${Math.floor(Math.random()*9999)}</span></div>`;
-        }
-        rewardPopup = reward;
-        setTimeout(()=>{
-          quizZone.innerHTML = `<div class="quiz-card" style="text-align:center;">
-            <div style="font-size:1.7em;font-weight:700;color:#38bdf8;">${msg}</div>
-            <div style="font-size:1.12em;margin:.8em 0 1.1em 0;">XP Earned: ${correctCount*10}</div>
-            <button class="answer-btn" onclick="startNewQuiz()">Next Quiz Set 🏝️</button>
-            ${reward}
-          </div>`;
-          document.getElementById('xpNum').textContent = xp;
-          document.getElementById('islandLevel').textContent = Math.floor(xp/50)+1;
-        },800);
-        return;
-      }
-      const quiz = quizList[quizIndex];
-      quizZone.innerHTML = `
-        <div class="quiz-card">
-          <div style="font-size:1.13em;color:#375ad7;font-weight:700;">Q${quizIndex+1}: ${quiz.q}</div>
-          <form id="quizForm" style="margin-top:.9em;">
-            ${quiz.opts.map((opt,i)=>`
-                <button type="button" class="answer-btn" onclick="pickAns(${i+1})">${opt}</button>
-            `).join("")}
-          </form>
+                <div class="mission-card-full completed-mission">
+                    <div class="mission-card-header">
+                        <div class="mission-info">
+                            <div class="mission-emoji-large">🧩</div>
+                            <div>
+                                <h3 class="mission-card-title">Solve Puzzle Challenge ✓</h3>
+                                <div class="mission-badges">
+                                    <span class="badge badge-purple">Brain Game</span>
+                                    <span class="badge badge-pink">Hard</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mission-xp-badge">+100 XP</div>
+                    </div>
+                    <button class="mission-completed-btn" disabled>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        Completed
+                    </button>
+                </div>
+
+                <div class="mission-card-full">
+                    <div class="mission-card-header">
+                        <div class="mission-info">
+                            <div class="mission-emoji-large">✍️</div>
+                            <div>
+                                <h3 class="mission-card-title">Write Book Summary</h3>
+                                <div class="mission-badges">
+                                    <span class="badge badge-purple">Writing</span>
+                                    <span class="badge badge-yellow">Medium</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mission-xp-badge">+60 XP</div>
+                    </div>
+                    <button class="mission-start-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                        </svg>
+                        Start Mission
+                    </button>
+                </div>
+            </div>
+
+            <!-- Motivation Card -->
+            <div class="motivation-card">
+                <div class="motivation-emoji">💪</div>
+                <h3 class="motivation-title">You're doing amazing!</h3>
+                <p class="motivation-text">Keep up the streak and watch your island grow! 🌴</p>
+            </div>
         </div>
-        <div style="text-align:center;margin-top:1em;color:#64748b;font-size:.98em;">XP per correct: 10 • Answer to grow your island!</div>
-      `;
-    }
-    function pickAns(idx) {
-      const quiz = quizList[quizIndex];
-      if(idx==quiz.a){ correctCount++; renderIslandView("grow"); setTimeout(()=>renderIslandView("happy"),300);}
-      else { renderIslandView("shrink"); setTimeout(()=>renderIslandView("sad"),300);}
-      quizIndex++;
-      setTimeout(()=>renderQuiz(),1100);
-    }
-    window.pickAns = pickAns;
-    function startNewQuiz() {
-      quizIndex = 0; quizList = getRandomQuiz(); correctCount = 0; rewardPopup = '';
-      renderDashboard();
-    }
-    window.startNewQuiz = startNewQuiz;
-    function logout() { user = null; xp=0; rewardPopup=''; renderLogin(); }
-    window.logout = logout;
 
-    // ------------ BOOTSTRAP -----------
-    const main = document.getElementById('main');
-    renderLogin();
-  </script>
+        <!-- Navigation Bar -->
+        <nav class="nav-bar">
+            <div class="nav-container">
+                <button class="nav-item" onclick="navigateTo('dashboard')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    </svg>
+                    <span class="nav-label">Home</span>
+                </button>
+                <button class="nav-item active" onclick="navigateTo('missions')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="6"></circle>
+                    </svg>
+                    <span class="nav-label">Missions</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('rewards')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                        <rect x="2" y="7" width="20" height="5"></rect>
+                    </svg>
+                    <span class="nav-label">Rewards</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('avatar')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span class="nav-label">Profile</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Reward Zone Screen -->
+    <div id="rewards" class="screen">
+        <!-- Header -->
+        <div class="header-gradient header-rewards">
+            <div class="confetti-bg">
+                <div class="confetti">✨</div>
+                <div class="confetti">⭐</div>
+                <div class="confetti">🎉</div>
+            </div>
+            <div class="container">
+                <h1 class="screen-title">Reward Zone 🎁</h1>
+                <p class="screen-subtitle">Redeem your hard-earned XP!</p>
+                <div class="xp-display-badge">
+                    <svg class="sparkle-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <polygon points="12 2 15 8.5 22 9.3 17 14 18.5 21 12 17.5 5.5 21 7 14 2 9.3 9 8.5 12 2"></polygon>
+                    </svg>
+                    <div>
+                        <div class="xp-display-value">650 XP</div>
+                        <div class="xp-display-label">Available to spend</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="main-content">
+            <!-- Featured Reward -->
+            <div class="featured-reward">
+                <div class="featured-bg-emoji">🎁</div>
+                <div class="featured-content">
+                    <div class="featured-badge">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                            <polygon points="12 2 15 8.5 22 9.3 17 14 18.5 21 12 17.5 5.5 21 7 14 2 9.3 9 8.5 12 2"></polygon>
+                        </svg>
+                        <span>FEATURED REWARD</span>
+                    </div>
+                    <h2 class="featured-title">Weekend Adventure Pass 🎢</h2>
+                    <p class="featured-description">Unlock a special weekend outing with your choice of activity!</p>
+                    <div class="featured-footer">
+                        <div class="featured-cost">3000 XP</div>
+                        <button class="featured-unlock-btn">Unlock Now</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reward Grid -->
+            <h3 class="section-title">All Rewards</h3>
+            <div class="rewards-grid">
+                <div class="reward-card unlocked">
+                    <div class="reward-header">
+                        <div class="reward-info">
+                            <div class="reward-emoji">🎮</div>
+                            <h4 class="reward-name">30min Game Time</h4>
+                        </div>
+                    </div>
+                    <div class="reward-footer">
+                        <div class="reward-cost">500 XP</div>
+                        <button class="reward-claim-btn">Claim</button>
+                    </div>
+                </div>
+
+                <div class="reward-card unlocked">
+                    <div class="reward-header">
+                        <div class="reward-info">
+                            <div class="reward-emoji">🍕</div>
+                            <h4 class="reward-name">Pizza Night Coupon</h4>
+                        </div>
+                    </div>
+                    <div class="reward-footer">
+                        <div class="reward-cost">750 XP</div>
+                        <button class="reward-claim-btn">Claim</button>
+                    </div>
+                </div>
+
+                <div class="reward-card claimed">
+                    <div class="reward-header">
+                        <div class="reward-info">
+                            <div class="reward-emoji">🎬</div>
+                            <div>
+                                <h4 class="reward-name">Movie Night Pass</h4>
+                                <span class="claimed-label">✓ Claimed</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reward-footer">
+                        <div class="reward-cost">600 XP</div>
+                        <button class="reward-claimed-btn" disabled>Claimed</button>
+                    </div>
+                </div>
+
+                <div class="reward-card locked">
+                    <div class="reward-header">
+                        <div class="reward-info">
+                            <div class="reward-emoji">🎨</div>
+                            <h4 class="reward-name">Art Supplies Kit</h4>
+                        </div>
+                        <svg class="lock-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <div class="reward-footer">
+                        <div class="reward-cost locked-cost">1000 XP</div>
+                        <button class="reward-locked-btn" disabled>Locked</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Motivation Message -->
+            <div class="motivation-card motivation-rewards">
+                <div class="motivation-emoji">🌟</div>
+                <p class="motivation-text-center">Complete more missions to unlock amazing rewards!</p>
+            </div>
+        </div>
+
+        <!-- Navigation Bar -->
+        <nav class="nav-bar">
+            <div class="nav-container">
+                <button class="nav-item" onclick="navigateTo('dashboard')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    </svg>
+                    <span class="nav-label">Home</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('missions')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>
+                    <span class="nav-label">Missions</span>
+                </button>
+                <button class="nav-item active" onclick="navigateTo('rewards')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                        <rect x="2" y="7" width="20" height="5"></rect>
+                    </svg>
+                    <span class="nav-label">Rewards</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('avatar')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span class="nav-label">Profile</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Avatar Customization Screen -->
+    <div id="avatar" class="screen">
+        <!-- Header -->
+        <div class="header-gradient header-avatar">
+            <div class="container">
+                <h1 class="screen-title">Customize Island 🎨</h1>
+                <p class="screen-subtitle">Make your island uniquely yours!</p>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="main-content">
+            <!-- Avatar Preview -->
+            <div class="avatar-preview">
+                <h3 class="preview-title">Your Avatar & Island</h3>
+                <div class="avatar-display">
+                    <div class="avatar-emoji-large">😎</div>
+                    <div class="avatar-sparkle">✨</div>
+                    <div class="avatar-palm">🌴</div>
+                </div>
+                <div class="avatar-tags">
+                    <div class="avatar-tag">Current: Cool Explorer</div>
+                    <div class="avatar-tag">Theme: Tropical Paradise</div>
+                </div>
+            </div>
+
+            <!-- Customization Tabs -->
+            <div class="custom-tabs">
+                <div class="tab-buttons">
+                    <button class="custom-tab-btn active" onclick="switchTab('outfit')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path>
+                        </svg>
+                        Outfit
+                    </button>
+                    <button class="custom-tab-btn" onclick="switchTab('island')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="13.5" cy="6.5" r=".5"></circle>
+                            <circle cx="17.5" cy="10.5" r=".5"></circle>
+                            <circle cx="8.5" cy="7.5" r=".5"></circle>
+                            <circle cx="6.5" cy="12.5" r=".5"></circle>
+                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+                        </svg>
+                        Island
+                    </button>
+                    <button class="custom-tab-btn" onclick="switchTab('accessories')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15 8.5 22 9.3 17 14 18.5 21 12 17.5 5.5 21 7 14 2 9.3 9 8.5 12 2"></polygon>
+                        </svg>
+                        Extras
+                    </button>
+                </div>
+
+                <!-- Outfit Tab -->
+                <div id="outfit-tab" class="tab-content active">
+                    <div class="customization-grid">
+                        <button class="custom-item unlocked">
+                            <div class="custom-emoji">👕</div>
+                            <div class="custom-name">Casual Tee</div>
+                        </button>
+                        <button class="custom-item unlocked">
+                            <div class="custom-emoji">🎓</div>
+                            <div class="custom-name">Scholar Cap</div>
+                        </button>
+                        <button class="custom-item unlocked">
+                            <div class="custom-emoji">👗</div>
+                            <div class="custom-name">Summer Dress</div>
+                        </button>
+                        <button class="custom-item locked" disabled>
+                            <div class="custom-emoji">🦸</div>
+                            <div class="custom-name">Hero Cape</div>
+                            <div class="custom-locked">🔒 Locked</div>
+                        </button>
+                        <button class="custom-item locked" disabled>
+                            <div class="custom-emoji">👔</div>
+                            <div class="custom-name">Formal Suit</div>
+                            <div class="custom-locked">🔒 Locked</div>
+                        </button>
+                        <button class="custom-item unlocked">
+                            <div class="custom-emoji">🎨</div>
+                            <div class="custom-name">Artist Smock</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Island Tab -->
+                <div id="island-tab" class="tab-content">
+                    <div class="island-themes-grid">
+                        <button class="island-theme-item unlocked">
+                            <div class="island-theme-header">
+                                <div class="island-theme-emoji">🌴</div>
+                                <div class="island-theme-name">Tropical Paradise</div>
+                            </div>
+                            <div class="island-theme-preview gradient-green-blue"></div>
+                        </button>
+                        <button class="island-theme-item unlocked">
+                            <div class="island-theme-header">
+                                <div class="island-theme-emoji">🌸</div>
+                                <div class="island-theme-name">Cherry Blossom</div>
+                            </div>
+                            <div class="island-theme-preview gradient-pink-purple"></div>
+                        </button>
+                        <button class="island-theme-item unlocked">
+                            <div class="island-theme-header">
+                                <div class="island-theme-emoji">🌊</div>
+                                <div class="island-theme-name">Ocean Vibes</div>
+                            </div>
+                            <div class="island-theme-preview gradient-blue-purple"></div>
+                        </button>
+                        <button class="island-theme-item locked" disabled>
+                            <div class="island-theme-header">
+                                <div class="island-theme-emoji">🌅</div>
+                                <div>
+                                    <div class="island-theme-name">Sunset Beach</div>
+                                    <div class="custom-locked">🔒 Locked</div>
+                                </div>
+                            </div>
+                            <div class="island-theme-preview gradient-yellow-pink"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Accessories Tab -->
+                <div id="accessories-tab" class="tab-content">
+                    <div class="customization-grid">
+                        <button class="custom-item unlocked">
+                            <div class="custom-emoji">😎</div>
+                            <div class="custom-name">Cool Shades</div>
+                        </button>
+                        <button class="custom-item locked" disabled>
+                            <div class="custom-emoji">🎩</div>
+                            <div class="custom-name">Top Hat</div>
+                            <div class="custom-locked">🔒 Locked</div>
+                        </button>
+                        <button class="custom-item locked" disabled>
+                            <div class="custom-emoji">👑</div>
+                            <div class="custom-name">Crown</div>
+                            <div class="custom-locked">🔒 Locked</div>
+                        </button>
+                        <button class="custom-item unlocked">
+                            <div class="custom-emoji">🎀</div>
+                            <div class="custom-name">Cute Bow</div>
+                        </button>
+                        <button class="custom-item unlocked">
+                            <div class="custom-emoji">🎧</div>
+                            <div class="custom-name">Headphones</div>
+                        </button>
+                        <button class="custom-item locked" disabled>
+                            <div class="custom-emoji">⭐</div>
+                            <div class="custom-name">Star Badge</div>
+                            <div class="custom-locked">🔒 Locked</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tip -->
+            <div class="motivation-card motivation-avatar">
+                <div class="motivation-emoji">💡</div>
+                <p class="motivation-text-center">Unlock more items by completing missions and earning XP!</p>
+            </div>
+        </div>
+
+        <!-- Navigation Bar -->
+        <nav class="nav-bar">
+            <div class="nav-container">
+                <button class="nav-item" onclick="navigateTo('dashboard')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    </svg>
+                    <span class="nav-label">Home</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('missions')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>
+                    <span class="nav-label">Missions</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('rewards')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                        <rect x="2" y="7" width="20" height="5"></rect>
+                    </svg>
+                    <span class="nav-label">Rewards</span>
+                </button>
+                <button class="nav-item active" onclick="navigateTo('avatar')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span class="nav-label">Profile</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Leaderboard Screen -->
+    <div id="leaderboard" class="screen">
+        <!-- Header -->
+        <div class="header-gradient header-leaderboard">
+            <div class="leaderboard-bg">
+                <div class="lb-icon">⭐</div>
+                <div class="lb-icon">✨</div>
+                <div class="lb-icon">🏆</div>
+            </div>
+            <div class="container">
+                <h1 class="screen-title">Leaderboard 🏆</h1>
+                <p class="screen-subtitle">See how you rank among your friends!</p>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="main-content">
+            <!-- Top 3 Podium -->
+            <div class="podium">
+                <!-- 2nd Place -->
+                <div class="podium-item">
+                    <div class="podium-card podium-second">
+                        <svg class="podium-medal" width="32" height="32" viewBox="0 0 24 24" fill="#999" stroke="#666" stroke-width="2">
+                            <circle cx="12" cy="8" r="6"></circle>
+                            <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+                        </svg>
+                        <div class="podium-emoji">🦊</div>
+                        <div class="podium-name">Jordan Sky</div>
+                        <div class="podium-xp">2720 XP</div>
+                    </div>
+                    <div class="podium-stand podium-stand-2">
+                        <span class="podium-rank">2</span>
+                    </div>
+                </div>
+
+                <!-- 1st Place -->
+                <div class="podium-item">
+                    <div class="podium-card podium-first">
+                        <svg class="podium-crown" width="40" height="40" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                            <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
+                        </svg>
+                        <div class="podium-emoji podium-emoji-large">🦁</div>
+                        <div class="podium-name podium-name-large">Alex Rivers</div>
+                        <div class="podium-xp podium-xp-large">2850 XP</div>
+                    </div>
+                    <div class="podium-stand podium-stand-1">
+                        <span class="podium-rank podium-rank-large">1</span>
+                    </div>
+                </div>
+
+                <!-- 3rd Place -->
+                <div class="podium-item">
+                    <div class="podium-card podium-third">
+                        <svg class="podium-medal" width="32" height="32" viewBox="0 0 24 24" fill="#FF8BC2" stroke="#B39FFF" stroke-width="2">
+                            <circle cx="12" cy="8" r="6"></circle>
+                            <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+                        </svg>
+                        <div class="podium-emoji">🐬</div>
+                        <div class="podium-name">Sam Ocean</div>
+                        <div class="podium-xp">2650 XP</div>
+                    </div>
+                    <div class="podium-stand podium-stand-3">
+                        <span class="podium-rank">3</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rest of Leaderboard -->
+            <div class="leaderboard-list">
+                <div class="leaderboard-item">
+                    <div class="lb-left">
+                        <div class="lb-rank-number">#4</div>
+                        <div class="lb-avatar">⚡</div>
+                        <div class="lb-info">
+                            <div class="lb-name">Riley Storm</div>
+                            <div class="lb-stats">
+                                <span>🏆 Level 10</span>
+                                <span>⚡ 8 day streak</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lb-xp-badge lb-xp-default">2400 XP</div>
+                </div>
+
+                <div class="leaderboard-item">
+                    <div class="lb-left">
+                        <div class="lb-rank-number">#5</div>
+                        <div class="lb-avatar">🔥</div>
+                        <div class="lb-info">
+                            <div class="lb-name">Casey Blaze</div>
+                            <div class="lb-stats">
+                                <span>🏆 Level 10</span>
+                                <span>⚡ 14 day streak</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lb-xp-badge lb-xp-default">2300 XP</div>
+                </div>
+
+                <div class="leaderboard-item">
+                    <div class="lb-left">
+                        <div class="lb-rank-number">#6</div>
+                        <div class="lb-avatar">⭐</div>
+                        <div class="lb-info">
+                            <div class="lb-name">Morgan Star</div>
+                            <div class="lb-stats">
+                                <span>🏆 Level 9</span>
+                                <span>⚡ 7 day streak</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lb-xp-badge lb-xp-default">2150 XP</div>
+                </div>
+
+                <div class="leaderboard-item current-user">
+                    <div class="lb-left">
+                        <div class="lb-rank-number">#7</div>
+                        <div class="lb-avatar">😎</div>
+                        <div class="lb-info">
+                            <div class="lb-name">
+                                You
+                                <span class="you-badge">You</span>
+                            </div>
+                            <div class="lb-stats">
+                                <span>🏆 Level 8</span>
+                                <span>⚡ 7 day streak</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lb-xp-badge lb-xp-default">1950 XP</div>
+                </div>
+
+                <div class="leaderboard-item">
+                    <div class="lb-left">
+                        <div class="lb-rank-number">#8</div>
+                        <div class="lb-avatar">🌊</div>
+                        <div class="lb-info">
+                            <div class="lb-name">Taylor Wave</div>
+                            <div class="lb-stats">
+                                <span>🏆 Level 8</span>
+                                <span>⚡ 5 day streak</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lb-xp-badge lb-xp-default">1820 XP</div>
+                </div>
+            </div>
+
+            <!-- Motivation Card -->
+            <div class="motivation-card motivation-leaderboard">
+                <div class="motivation-emoji">🚀</div>
+                <p class="motivation-text-center">Keep grinding! You're only 3 spots away from the top 5! 💪</p>
+            </div>
+        </div>
+
+        <!-- Navigation Bar -->
+        <nav class="nav-bar">
+            <div class="nav-container">
+                <button class="nav-item" onclick="navigateTo('dashboard')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    </svg>
+                    <span class="nav-label">Home</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('missions')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>
+                    <span class="nav-label">Missions</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('rewards')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                        <rect x="2" y="7" width="20" height="5"></rect>
+                    </svg>
+                    <span class="nav-label">Rewards</span>
+                </button>
+                <button class="nav-item" onclick="navigateTo('avatar')">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span class="nav-label">Profile</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Screen Selector Modal -->
+    <div id="screen-selector" class="screen-selector-modal">
+        <div class="selector-content">
+            <div class="selector-header">
+                <h2>GenZ Productivity Island Screens</h2>
+                <button class="close-btn" onclick="closeScreenSelector()">✕</button>
+            </div>
+            <div class="selector-screens">
+                <button class="selector-screen-btn" onclick="navigateTo('onboarding')">
+                    1. Onboarding
+                </button>
+                <button class="selector-screen-btn" onclick="navigateTo('dashboard')">
+                    2. Dashboard
+                </button>
+                <button class="selector-screen-btn" onclick="navigateTo('missions')">
+                    3. Mission Center
+                </button>
+                <button class="selector-screen-btn" onclick="navigateTo('rewards')">
+                    4. Reward Zone
+                </button>
+                <button class="selector-screen-btn" onclick="navigateTo('avatar')">
+                    5. Avatar Customization
+                </button>
+                <button class="selector-screen-btn" onclick="navigateTo('leaderboard')">
+                    6. Leaderboard
+                </button>
+            </div>
+            <div class="selector-info">
+                <h3>🎨 Design Features:</h3>
+                <ul>
+                    <li>• Vibrant gradients (Ocean Blue, Sunset Pink, Mint Green, Soft Purple, Warm Yellow)</li>
+                    <li>• Rounded corners (24px+) with soft shadows</li>
+                    <li>• Emoji-based icons with playful animations</li>
+                    <li>• Floating, airy, bubble-like components</li>
+                    <li>• Tropical island theme with growth mechanics</li>
+                    <li>• Gamified XP system and streak tracking</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
